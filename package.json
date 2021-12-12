@@ -1,0 +1,14 @@
+{
+  "name": "vereinsflieger_api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "dateformat": "^5.0.2",
+    "debug": "~2.6.9",
+    "express-session": "^1.17.2",
+    "node-fetch": "^2.6.1"
+  }
+}
