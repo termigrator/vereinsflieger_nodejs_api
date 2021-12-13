@@ -8,6 +8,15 @@ Although the system itself already maps all relevant topics in the web applicati
 
 Because there is some tendency towards NodeJS in woldwide application development, I took the effort to create a wrapper API for NodeJS. To save other programmers the effort, I make the code available here to the public.  You can use the code, but I do not guarantee the results and take no responsibility for the code.
 
+## Legal issues
+You can use the code, but I do not guarantee the results and take no responsibility for the code. You have to get an individual App-Key form vereinsflieger.de. In this context you have to comply the terms of use of vereinsflieger.de. Extract from the documentation:
+```
+Der für die Anmeldung erforderliche appkey kann über den Support
+angefragt werden. Die max. Anzahl an Requests (gemeint sind alle
+Aufrufe) ist auf 1000 je Tag limitiert. Die kommerzielle Nutzung der
+Schnittstelle ist grundsätzlich untersagt.
+```
+
 ## Example NodeJS / Express Code
 
 Example code for a router reacting to a login-form, sending the data belgonging to the current user to a display-file:
