@@ -6,7 +6,7 @@
 
 Although the system itself already maps all relevant topics in the web application, a reading and writing API is offered for many tables in the database. This API can be used to solve rare, individual needs.
 
-Because there is some tendency towards NodeJS in woldwide application development, I took the effort to create a wrapper API for NodeJS. To save other programmers the effort, I make the code available here to the public.  You can use the code, but I do not guarantee the results and take no responsibility for the code.
+Because there is some tendency towards NodeJS in woldwide application development, I took the effort to create a wrapper API for NodeJS. To save other programmers the effort, I make the code available here to the public. 
 
 ## Legal issues
 You can use the code, but I do not guarantee the results and take no responsibility for the code. You have to get an individual App-Key form vereinsflieger.de. In this context you have to comply the terms of use of vereinsflieger.de. Extract from the documentation:
