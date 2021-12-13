@@ -9,7 +9,6 @@ Although the system itself already maps all relevant topics in the web applicati
 Because there is some tendency towards NodeJS in woldwide application development, I took the effort to create a wrapper API for NodeJS. To save other programmers the effort, I make the code available here to the public.  You can use the code, but I do not guarantee the results and take no responsibility for the code.
 
 ## Example NodeJS / Express Code
-Translated with www.DeepL.com/Translator (free version)
 
 Example code for a router reacting to a login-form, sending the data belgonging to the current user to a display-file:
 ```
