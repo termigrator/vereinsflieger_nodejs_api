@@ -49,3 +49,29 @@ router.post('/', vereinsfliegerLogin, setUserdata, render);
 
 module.exports = router;
 ```
+
+## Example NodeJS Middleware - Read nested Javascript-Object returned by vereinsflieger.de (cutout)
+Data representing a list returnd from this API are nested Javascript-Objects. Here is a sample to convert this list in a array:
+
+```
+var express = require('express');
+var config = require('../config').config;
+const { VereinsfliegerAPI } = require('../../vereinsflieger_api/vereinsflieger_nodejs_api');
+var router = express.Router();
+var vf = new VereinsfliegerAPI(config.vereinsflieger_appkey);
+var filteredTransactions
+
+async function fillCashTransactions(req, res, next) {
+  var transactions_json = await vf.getAccountListYear(req.session.accesstoken, new Date().getFullYear());
+  var transaction_array = [];
+  for (var key in transactions_json)
+    (transaction_array.push(transactions_json[key]));
+  filteredTransactions = transaction_array.filter(function (el) {
+    return el.creditaccount == 100000;
+  });
+  return next();
+}
+
+...... other needed middleware functions ...
+
+```
