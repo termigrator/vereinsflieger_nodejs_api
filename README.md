@@ -50,7 +50,7 @@ router.post('/', vereinsfliegerLogin, setUserdata, render);
 module.exports = router;
 ```
 
-## Example NodeJS Middleware - Read nested Javascript-Object returned by vereinsflieger.de (cutout)
+## Example NodeJS Middleware - Read nested Javascript-Object returned by this api (cutout)
 Data representing a list returnd from this API are nested Javascript-Objects. Here is a sample to convert this list in a array:
 
 ```
