@@ -51,7 +51,7 @@ module.exports = router;
 ```
 
 ## Example NodeJS Middleware - Read nested Javascript-Object returned by this api (cutout)
-Data representing a list returnd from this API are nested Javascript-Objects. Here is a sample to convert this list in a array:
+Data representing a list returnd from this API are nested Javascript-Objects. Here is a sample to convert this list in a array. In this example the needen appkey is read from a config-file.
 
 ```
 var express = require('express');
