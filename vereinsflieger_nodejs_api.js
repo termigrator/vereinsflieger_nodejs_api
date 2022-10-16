@@ -31,7 +31,7 @@ class VereinsfliegerAPI {
         this.AppKey = appkey;
         this.Host = "https://vereinsflieger.de/";
     }
-
+    //vereinsID only neccessary if user can access multiple Vereine
     setVereinsID(id) {
         this.VereinsID = id;
     }
@@ -52,7 +52,7 @@ class VereinsfliegerAPI {
         vfp.params.append('username', username);
         vfp.params.append('password', hash);
         let data;
-        if (this.VereinsID)
+        if (this.VereinsID) //vereinsID only neccessary if user can access multiple Vereine
             params.append('cid', this.VereinsID);
         await vfp.fetch().then(d => data = d).catch(e => console.log(e));
 
