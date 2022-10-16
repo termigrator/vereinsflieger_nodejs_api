@@ -23,13 +23,13 @@ OTHER DEALINGS IN THE SOFTWARE. */
 
 var fetch = require('node-fetch');
 var crypto = require('crypto')
-
+var vfHostname="https://vereinsflieger.de/"
 
 class VereinsfliegerAPI {
 
     constructor(appkey) {
         this.AppKey = appkey;
-        this.Host = "https://vereinsflieger.de/";
+        this.Host = vfHostname;
     }
     //vereinsID only neccessary if user can access multiple Vereine
     setVereinsID(id) {
