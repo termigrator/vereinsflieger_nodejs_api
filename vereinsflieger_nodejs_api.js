@@ -23,61 +23,64 @@ OTHER DEALINGS IN THE SOFTWARE. */
 
 var fetch = require('node-fetch');
 var crypto = require('crypto')
-var vfHostname="https://vereinsflieger.de/"
+var vfHostname = "https://vereinsflieger.de/"
 
 class VereinsfliegerAPI {
 
     constructor(appkey) {
         this.AppKey = appkey;
         this.Host = vfHostname;
+        this.accesstoken = ""; //access-token will be set during sign-in
+
     }
     //vereinsID only neccessary if user can access multiple Vereine
     setVereinsID(id) {
         this.VereinsID = id;
     }
 
-    async getAccessToken() {
+    async setAccessToken() {
         var vfp = new VereinsfliegerPromise('interface/rest/auth/accesstoken')
         vfp.method = "GET";
-        var token;
-        await vfp.fetch().then(data => token = data['accesstoken']).catch(e => console.log(e));
-        return token
+        return vfp.fetch()//.then(data => this.accesstoken = data['accesstoken']).catch(e => console.log(e));
     }
 
-    async signIn(accesstoken, username, password) {
+    async signIn(username, password) {
         var vfp = new VereinsfliegerPromise('interface/rest/auth/signin');
-        var hash = crypto.createHash('md5').update(password).digest('hex');
-        vfp.params.append('accesstoken', accesstoken);
-        vfp.params.append('appkey', this.AppKey);
-        vfp.params.append('username', username);
-        vfp.params.append('password', hash);
-        let data;
-        if (this.VereinsID) //vereinsID only neccessary if user can access multiple Vereine
-            params.append('cid', this.VereinsID);
-        await vfp.fetch().then(d => data = d).catch(e => console.log(e));
-
+        await this.setAccessToken()
+            .then(data => {
+                this.accesstoken = data.accesstoken;
+                var hash = crypto.createHash('md5').update(password).digest('hex');
+                console.log("signInAccesstoken: " + this.accesstoken);
+                vfp.params.append('accesstoken', this.accesstoken);
+                vfp.params.append('appkey', this.AppKey);
+                vfp.params.append('username', username);
+                vfp.params.append('password', hash);
+                if (this.VereinsID) //vereinsID only neccessary if user can access multiple Vereine
+                    params.append('cid', this.VereinsID);
+                return vfp.fetch();
+            },
+            error=>console.log("Error fetching Access-Token: ", error));
     }
 
-    async signOut(accesstoken) {
+    async signOut() {
         var vfp = new VereinsfliegerPromise('interface/rest/auth/signout');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.method = "DELETE";
-        let data;
-        await vfp.fetch().then(d => data = d).catch(e => console.log(e));
-        return data;
+        return vfp.fetch();//.then(d => data = d).catch(e => console.log("Error on Logout: " + e));
+        // return data;
     }
 
-    async getUser(accesstoken) {
+    getUser() {
         var vfp = new VereinsfliegerPromise('interface/rest/auth/getuser')
-        vfp.params.append('accesstoken', accesstoken);
-        let user;
-        await vfp.fetch().then(data => user = data).catch(e => console.log(e));
-        return user;
+        console.log("getUser Accesstoken: " + this.accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
+        return vfp.fetch()//.then(data => user = data).catch(e => console.log(e));
+        //return user;
     }
 
-    async addFlight(accesstoken, callsign, { pilotName = '', uidPilot = 0, attendantName = "", uidAttendant = 0, attendantName2 = "", uidAttendant2 = 0, attendantName3 = "", uidAttendant3 = 0, startType = "E", departureTime = '', departureLocation = '', arrivalTime = '', arrivalLocation = '', landingCount = 1, ftId = 10, km = 0, chargeMode = 0, uidCharge = 0, comment = '', wId = 0, towCallsign = '', towPilotName = '', towUidPilot = 0, towTime = '', towHeight = 0, offBlock = '', onBlock = '', motorStart = 0.0, motorEnd = 0.0 }) {
+    async addFlight(callsign, { pilotName = '', uidPilot = 0, attendantName = "", uidAttendant = 0, attendantName2 = "", uidAttendant2 = 0, attendantName3 = "", uidAttendant3 = 0, startType = "E", departureTime = '', departureLocation = '', arrivalTime = '', arrivalLocation = '', landingCount = 1, ftId = 10, km = 0, chargeMode = 0, uidCharge = 0, comment = '', wId = 0, towCallsign = '', towPilotName = '', towUidPilot = 0, towTime = '', towHeight = 0, offBlock = '', onBlock = '', motorStart = 0.0, motorEnd = 0.0 }) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/add');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('callsign', callsign);
         vfp.params.append('pilotname', pilotName);
         vfp.params.append('uidpilot', uidPilot);
@@ -112,10 +115,10 @@ class VereinsfliegerAPI {
         return newflight;
     }
 
-    async editFlight(accesstoken, fligthId, { callsign = '', pilotName = '', uidPilot = 0, attendantName = "", uidAttendant = 0, attendantName2 = "", uidAttendant2 = 0, attendantName3 = "", uidAttendant3 = 0, startType = "E", departureTime = '', departureLocation = '', arrivalTime = '', arrivalLocation = '', landingCount = 1, ftId = 10, km = 0, chargeMode = 0, uidCharge = 0, comment = '', wId = 0, towCallsign = '', towPilotName = '', towUidPilot = 0, towTime = '', towHeight = 0, offBlock = '', onBlock = '', motorStart = 0.0, motorEnd = 0.0 }) {
+    async editFlight(fligthId, { callsign = '', pilotName = '', uidPilot = 0, attendantName = "", uidAttendant = 0, attendantName2 = "", uidAttendant2 = 0, attendantName3 = "", uidAttendant3 = 0, startType = "E", departureTime = '', departureLocation = '', arrivalTime = '', arrivalLocation = '', landingCount = 1, ftId = 10, km = 0, chargeMode = 0, uidCharge = 0, comment = '', wId = 0, towCallsign = '', towPilotName = '', towUidPilot = 0, towTime = '', towHeight = 0, offBlock = '', onBlock = '', motorStart = 0.0, motorEnd = 0.0 }) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/edit/' + fligthId)
         vfp.method = "PUT"
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('callsign', callsign);
         vfp.params.append('pilotname', pilotName);
         vfp.params.append('uidpilot', uidPilot);
@@ -149,9 +152,9 @@ class VereinsfliegerAPI {
         return changedFlight;
     }
 
-    async deleteFlight(accesstoken, fligthId) {
+    async deleteFlight( fligthId) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/delete/' + fligthId)
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         var result;
         await vfp.fetch().then(r => result = r).catch(e => console.log(e));
         return result;
@@ -165,25 +168,25 @@ class VereinsfliegerAPI {
         return flight;
     }
 
-    async getFlightListToday(accesstoken) {
+    async getFlightListToday() {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/list/today');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         let flights;
         await vfp.fetch().then(data => flights = data).catch(e => console.log(e));
         return flights;
     }
-    async getFlightListDate(accesstoken, dateParam) {
+    async getFlightListDate( dateParam) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/list/date');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('dateparam', dateParam);
         let flights;
         await vfp.fetch().then(data => flights = data).catch(e => console.log(e));
         return flights;
     }
 
-    async getLastFlightsPlane(accesstoken, callsign, count) {
+    async getLastFlightsPlane( callsign, count) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/list/plane');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('callsign', callsign);
         vfp.params.append('count', count);
         let flights;
@@ -191,18 +194,18 @@ class VereinsfliegerAPI {
         return flights;
     }
 
-    async getLastFlightsUser(accesstoken, count) {
+    async getLastFlightsUser( count) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/list/myflights');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('count', count);
         let flights;
         await vfp.fetch().then(data => flights = data).catch(e => console.log(e));
         return flights;
     }
 
-    async getLastFlightsPilot(accesstoken, uid, count) {
+    async getLastFlightsPilot( uid, count) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/list/user');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken',this.accesstoken);
         vfp.params.append("uid", uid);
         vfp.params.append('count', count);
         let flights;
@@ -210,9 +213,9 @@ class VereinsfliegerAPI {
         return flights;
     }
 
-    async getLastModifiedFlights(accesstoken, days) {
+    async getLastModifiedFlights( days) {
         var vfp = new VereinsfliegerPromise('interface/rest/flight/list/modified');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append("days", days);
         let flights;
         await vfp.fetch().then(data => flights = data).catch(e => console.log(e));
@@ -228,46 +231,46 @@ class VereinsfliegerAPI {
         return appointments;
     }
 
-    async getCalendarUser(accesstoken) {
+    async getCalendarUser() {
         //warning: test of this function did not pass!!
         var vfp = new VereinsfliegerPromise('interface/rest/calendar/list/mycalendar');
         vfp.method = "GET";
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         let appointments;
         await vfp.fetch().then(data => appointments = data).catch(e => console.log(e));
         return appointments;
     }
 
-    async getPersonList(accesstoken) {
+    async getPersonList() {
         var vfp = new VereinsfliegerPromise('interface/rest/user/list');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         let persons;
         await vfp.fetch().then(data => persons = data).catch(e => console.log(e));
         return persons;
     }
 
-    async getReservationList(accesstoken) {
+    async getReservationList() {
         //warning: test of this function did not pass!!
         var vfp = new VereinsfliegerPromise('interface/rest/reservation/list/actice');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         let rerservations;
         await vfp.fetch().then(data => rerservations = data).catch(e => console.log(e));
         return rerservations;
     }
 
-    async getMaintenanceData(accesstoken, callSign) {
+    async getMaintenanceData( callSign) {
         var vfp = new VereinsfliegerPromise('interface/rest/maintenance/airplane/' + callSign);
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         let maintenanceData;
         await vfp.fetch().then(data => maintenanceData = data).catch(e => console.log(e));
         return maintenanceData;
     }
 
-    async accountAddTransaction(accesstoken, bDate, value, salesTax, debitAccount, creditAccount, taxAccount, accountReference, accountReferenceId, bookingText) {
+    async accountAddTransaction( bDate, value, salesTax, debitAccount, creditAccount, taxAccount, accountReference, accountReferenceId, bookingText) {
         if (value <= 0)
             return ("Betrag muss größer 0,00 sein");
         var vfp = new VereinsfliegerPromise('interface/rest/account/add');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('bookingdate', bDate);
         vfp.params.append('value', value);
         vfp.params.append('salestax', salesTax);
@@ -282,43 +285,43 @@ class VereinsfliegerAPI {
         return newTransaction;
     }
 
-    async getAccountTransaction(accesstoken, transactionId) {
+    async getAccountTransaction(transactionId) {
         var vfp = new VereinsfliegerPromise('interface/rest/account/get/' + transactionId);
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         let transaction;
         await vfp.fetch().then(data => transaction = data).catch(e => console.log(e));
         return transaction;
     }
 
-    async getAccountTransactionsToday(accesstoken) {
+    async getAccountTransactionsToday() {
         var vfp = new VereinsfliegerPromise('interface/rest/account/list/today');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         let transactions;
         await vfp.fetch().then(data => transactions = data).catch(e => console.log(e));
         return transactions;
     }
 
-    async getAccountListYear(accesstoken, year) {
+    async getAccountListYear(year) {
         var vfp = new VereinsfliegerPromise('interface/rest/account/list/year');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('year', year);
         let transactions;
-        await vfp.fetch().then(data => transactions = data).catch(e => console.log(e));
+        await vfp.fetch().then(data => transactions = data).catch(e => console.log("Error in Routine getAccountListYear:" + e));
         return transactions;
     }
 
-    async getAccountTransactionsDaterange(accesstoken, dateFrom, dateTo) {
+    async getAccountTransactionsDaterange( dateFrom, dateTo) {
         var vfp = new VereinsfliegerPromise('interface/rest/account/list/daterange');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('datefrom', dateFrom);
         vfp.params.append('dateto', dateTo);
         let transactions;
         await vfp.fetch().then(data => transactions = data).catch(e => console.log(e));
         return transactions;
     }
-    async getWorkhoursDaterange(accesstoken, dateFrom, dateTo) {
+    async getWorkhoursDaterange( dateFrom, dateTo) {
         var vfp = new VereinsfliegerPromise('interface/rest/workhours/list/daterange');
-        vfp.params.append('accesstoken', accesstoken);
+        vfp.params.append('accesstoken', this.accesstoken);
         vfp.params.append('datefrom', dateFrom);
         vfp.params.append('dateto', dateTo);
         let workhours;
@@ -326,9 +329,9 @@ class VereinsfliegerAPI {
         return workhours;
     }
 
-    async workhoursAdd(accesstoken, uid, jobDate, jobText, hours, category, { timeFrom = '', timeTo = '', status = 0, comment = "" }) {
+    async workhoursAdd( uid, jobDate, jobText, hours, category, { timeFrom = '', timeTo = '', status = 0, comment = "" }) {
         var vfp = new VereinsfliegerPromise('interface/rest/workhours/add');
-        vfp.params.append("accesstoken", accesstoken)
+        vfp.params.append("accesstoken", this.accesstoken)
         vfp.params.append('uid', uid);
         vfp.params.append('jobdate', jobDate);
         vfp.params.append('jobtext', jobText);
@@ -343,25 +346,25 @@ class VereinsfliegerAPI {
         return newTransaction;
     }
 
-    async getWorkhoursCategories(accesstoken) {
+    async getWorkhoursCategories() {
         var vfp = new VereinsfliegerPromise('interface/rest/workhourcategories/list');
-        vfp.params.append("accesstoken", accesstoken)
+        vfp.params.append("accesstoken", this.accesstoken)
         let categories;
         vfp.fetch().then(data => categories = data).catch(e => console.log(e));
         return categories;
     }
 
-    async getArticles(accesstoken) {
+    async getArticles() {
         var vfp = new VereinsfliegerPromise('interface/rest/articles/list');
-        vfp.params.append("accesstoken", accesstoken)
+        vfp.params.append("accesstoken", this.accesstoken)
         let articles;
         vfp.fetch().then(data => articles = data).catch(e => console.log(e));
         return articles;
     }
 
-    async addSale(accesstoken, bookingDate, articleId, { ammount = 0.0, memberId = 0, callsign = '', salesTax = 0.0, totalPrice = 0.0, counter = 0.0, comment = '', ccId = '' }) {
+    async addSale( bookingDate, articleId, { ammount = 0.0, memberId = 0, callsign = '', salesTax = 0.0, totalPrice = 0.0, counter = 0.0, comment = '', ccId = '' }) {
         var vfp = new VereinsfliegerPromise('interface/rest/sale/add');
-        vfp.params.append("accesstoken", accesstoken)
+        vfp.params.append("accesstoken", this.accesstoken)
         vfp.params.append('bookingdate', bookingDate);
         vfp.params.append('articleid', articleId);
         vfp.params.append('amount', ammount);
