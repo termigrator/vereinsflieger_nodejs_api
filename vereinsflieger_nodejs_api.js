@@ -59,7 +59,7 @@ class VereinsfliegerAPI {
                     params.append('cid', this.VereinsID);
                 return vfp.fetch();
             },
-            error=>console.log("Error fetching Access-Token: ", error));
+            error=>console.log("signIn: Error fetching Access-Token: ", error));
     }
 
     async signOut() {
@@ -70,10 +70,10 @@ class VereinsfliegerAPI {
         // return data;
     }
 
-    getUser() {
+    getUser(accesstoken=this.accesstoken) {
         var vfp = new VereinsfliegerPromise('interface/rest/auth/getuser')
-        console.log("getUser Accesstoken: " + this.accesstoken);
-        vfp.params.append('accesstoken', this.accesstoken);
+        //console.log("getUser Accesstoken: " + this.accesstoken);
+        vfp.params.append('accesstoken', accesstoken);
         return vfp.fetch()//.then(data => user = data).catch(e => console.log(e));
         //return user;
     }
@@ -235,18 +235,18 @@ class VereinsfliegerAPI {
         //warning: test of this function did not pass!!
         var vfp = new VereinsfliegerPromise('interface/rest/calendar/list/mycalendar');
         vfp.method = "GET";
-        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('accesstoken',token);
         let appointments;
         await vfp.fetch().then(data => appointments = data).catch(e => console.log(e));
         return appointments;
     }
 
-    async getPersonList() {
+    async getPersonList(token=this.accesstoken) {
         var vfp = new VereinsfliegerPromise('interface/rest/user/list');
-        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('accesstoken', token);
         let persons;
-        await vfp.fetch().then(data => persons = data).catch(e => console.log(e));
-        return persons;
+        return vfp.fetch();//.then(data => persons = data).catch(e => console.log(e));
+        //return persons;
     }
 
     async getReservationList() {
@@ -392,12 +392,18 @@ class VereinsfliegerPromise {
     fetch() {
         //method 'GET' is not allowed to have a body
         return new Promise((resolve, reject) => {
+            const that=this;
             if (this.method == "GET")
                 fetch(this.Host + this.resturi)
                     .then(r => r.json())
                     .then(function (data) {
                         if (data.httpstatuscode == 200)
+                        {
+                            // data is enriched by accesstoken, if accesstoken is present
+                            if(that.params.has("accesstoken"))
+                                data.accesstoken=that.params.get("accesstoken");
                             resolve(data);
+                        }
                         else
                             reject(data);
                     })
@@ -405,8 +411,13 @@ class VereinsfliegerPromise {
                 fetch(this.Host + this.resturi, { method: this.method, body: this.params })
                     .then(r => r.json())
                     .then(function (data) {
-                        if (data.httpstatuscode == 200)
+                        if (data.httpstatuscode == 200){
+                            // data is enriched by accesstoken, if accesstoken is present
+                            if(that.params.has("accesstoken"))
+                                data.accesstoken=that.params.get("accesstoken");
                             resolve(data);
+                        }
+
                         else
                             reject(data);
                     })
