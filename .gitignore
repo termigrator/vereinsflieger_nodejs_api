@@ -4,4 +4,5 @@
 /test.js
 .env
 *.pdf
+*.pub
 .DS_Store
