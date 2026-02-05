@@ -1,14 +1,32 @@
 {
   "name": "vereinsflieger_api",
-  "version": "1.0.0",
-  "private": true,
+  "version": "2.0.0",
+  "description": "Comprehensive Node.js wrapper for the Vereinsflieger REST API with full JSDoc documentation",
+  "main": "vereinsflieger_nodejs_api.js",
   "scripts": {
-    "start": "node ./bin/www"
+    "test": "node test.js"
+  },
+  "keywords": [
+    "vereinsflieger",
+    "aviation",
+    "flight",
+    "api",
+    "wrapper",
+    "germany"
+  ],
+  "author": "robert1@kaider.info",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/vereinsflieger_api.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "dateformat": "^5.0.2",
     "debug": "~2.6.9",
-    "express-session": "^1.17.2",
-    "node-fetch": "^2.6.1"
+    "dotenv": "^16.4.5",
+    "express-session": "^1.17.2"
   }
 }
