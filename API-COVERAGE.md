@@ -146,31 +146,9 @@
 
 ## HINWEISE
 
-### Übersprungene Tests (SKIP)
-Die folgenden Methoden haben Tests in `test-reservation.js`, die aber übersprungen werden, weil die API diese Operationen nicht unterstützt:
-- `addReservation()` - API unterstützt keine Reservierungs-Schreiboperationen
-- `getReservation()` - API unterstützt nur Liste, keine einzelnen Reservierungen
-- `editReservation()` - API unterstützt keine Reservierungs-Schreiboperationen
-- `deleteReservation()` - API unterstützt keine Reservierungs-Schreiboperationen
-
-### Nicht dokumentierte Methoden (⚠️ im README)
-Diese Methoden sind im Code implementiert, aber nicht in der offiziellen API-Spezifikation (Stand 17.08.2026):
-- `getAircraftList()` - Aircraft-Liste nicht in API-Doku
-- `getAircraft()` - Aircraft-Details nicht in API-Doku
-- `getUserDetails()` - User-Details nicht in API-Doku
-- `addReservation()` - Reservierungs-CRUD nicht verfügbar
-- `editReservation()` - Reservierungs-CRUD nicht verfügbar
-- `deleteReservation()` - Reservierungs-CRUD nicht verfügbar
-- `getReservation()` - Reservierungs-CRUD nicht verfügbar
-- `deleteAccountTransaction()` - Account-Delete nicht in API-Doku
-- `getWorkhour()` - Arbeitsstunden-Details nicht in API-Doku
-- `editWorkhour()` - Arbeitsstunden-Bearbeitung nicht in API-Doku
-- `deleteWorkhour()` - Arbeitsstunden-Löschen nicht in API-Doku
-- `getFlightStatistics()` - Statistik-Endpunkt nicht in API-Doku
-
 ### Test-Dateien
 - **test-api-complete.js**: Testet alle dokumentierten Endpunkte (11 Tests)
-- **test-reservation.js**: Fokussierte Tests für Reservierungen (8 Tests, 4 davon SKIP)
+- **test-reservation.js**: Test für Reservierungsliste
 - **test.js**: Legacy-Tests für Flüge und Basis-Funktionen (Tests umfassender Flug-CRUD)
 
 ---

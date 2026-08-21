@@ -1,6 +1,6 @@
 {
   "name": "vereinsflieger_api",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Comprehensive Node.js wrapper for the Vereinsflieger REST API with full JSDoc documentation",
   "main": "vereinsflieger_nodejs_api.js",
   "scripts": {

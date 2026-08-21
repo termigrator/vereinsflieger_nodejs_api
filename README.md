@@ -208,8 +208,6 @@ class FlightTestSuite extends ReservationTestSuite {
 
 ## API Overview
 
-> ⚠️ **WICHTIG**: Methoden mit der Markierung **⚠️ NICHT DOKUMENTIERT** sind in der offiziellen API-Spezifikation (Stand 17.08.2026) nicht dokumentiert und funktionieren möglicherweise nicht. Sie wurden für zukünftige API-Versionen vorbereitet oder basieren auf älteren Implementierungen. Verwenden Sie diese Methoden auf eigenes Risiko.
-
 ### Authentication
 - `signIn(username, password)` - Sign in user
 - `signOut()` - Sign out current user
@@ -229,64 +227,52 @@ class FlightTestSuite extends ReservationTestSuite {
 - `getLastFlightsUser(count)` - Last N flights of current user
 - `getLastFlightsPilot(uid, count)` - Last N flights of pilot
 - `getLastModifiedFlights(days)` - Recently modified flights
-- `getFlightStatistics(from, to)` - ⚠️ **NICHT DOKUMENTIERT** - Flight statistics (nicht in offizieller API-Spezifikation)
 
-### Aircraft
-- `getAircraftList()` - ⚠️ **NICHT DOKUMENTIERT** - List all aircraft (nicht in offizieller API-Spezifikation)
-- `getAircraft(callsign)` - ⚠️ **NICHT DOKUMENTIERT** - Get aircraft details (nicht in offizieller API-Spezifikation)
+### Maintenance
 - `getMaintenanceData(callsign)` - Get maintenance data
 
 ### Users
 - `getPersonList()` - List all users/members
-- `getUserDetails(uid)` - ⚠️ **NICHT DOKUMENTIERT** - Get detailed user info (nicht in offizieller API-Spezifikation)
 
-### Reservations (Read-Only)
-- `addReservation(callsign, from, to, options)` - ⚠️ **NICHT DOKUMENTIERT** - Add reservation (nicht in offizieller API-Spezifikation)
-- `editReservation(reservationId, options)` - ⚠️ **NICHT DOKUMENTIERT** - Edit reservation (nicht in offizieller API-Spezifikation)
-- `deleteReservation(reservationId)` - ⚠️ **NICHT DOKUMENTIERT** - Delete reservation (nicht in offizieller API-Spezifikation)
-- `getReservation(reservationId)` - ⚠️ **NICHT DOKUMENTIERT** - Get reservation details (nicht in offizieller API-Spezifikation)
-- `getReservationList()` - List active reservations (**FIXED** URL typo)
+### Reservations
+- `getReservationList()` - List active reservations
 
-### Calendar (Complete CRUD) **NEW**
+### Calendar (Complete CRUD)
 - `getCalendarPublic(hpaccessCode)` - Get public calendar (no auth)
 - `getCalendarUser()` - Get user's calendar
-- `getCalendarList(from, to)` - **NEW** Get appointments for date range
-- `addCalendarAppointment(title, from, to, options)` - **NEW** Add appointment
-- `editCalendarAppointment(apoid, from, to, options)` - **NEW** Edit appointment
-- `deleteCalendarAppointment(apoid)` - **NEW** Delete appointment
+- `getCalendarList(from, to)` - Get appointments for date range
+- `addCalendarAppointment(title, from, to, options)` - Add appointment
+- `editCalendarAppointment(apoid, from, to, options)` - Edit appointment
+- `deleteCalendarAppointment(apoid)` - Delete appointment
 
-### Accounting (Complete CRUD)
+### Accounting
 - `accountAddTransaction(date, value, tax, debit, credit, ..., options)` - Add transaction (with new fields: costtype, spid)
 - `editAccountTransaction(transactionId, options)` - Edit transaction (with new fields: costtype, spid)
-- `deleteAccountTransaction(transactionId)` - ⚠️ **NICHT DOKUMENTIERT** - Delete transaction (nicht in offizieller API-Spezifikation)
 - `getAccountTransaction(transactionId)` - Get transaction details
 - `getAccountTransactionsToday()` - Today's transactions
 - `getAccountListYear(year)` - Transactions for year
 - `getAccountTransactionsDaterange(from, to)` - Transactions in range
 
-### Work Hours (Add + Read)
+### Work Hours
 - `workhoursAdd(uid, date, text, hours, category, options)` - Add work hours
-- `editWorkhour(workhourId, options)` - ⚠️ **NICHT DOKUMENTIERT** - Edit work hours (nicht in offizieller API-Spezifikation)
-- `deleteWorkhour(workhourId)` - ⚠️ **NICHT DOKUMENTIERT** - Delete work hours (nicht in offizieller API-Spezifikation)
-- `getWorkhour(workhourId)` - ⚠️ **NICHT DOKUMENTIERT** - Get work hour details (nicht in offizieller API-Spezifikation)
 - `getWorkhoursDaterange(from, to)` - Work hours in range
 - `getWorkhoursCategories()` - Get available categories
 
 ### Articles & Sales
 - `getArticles()` - List all articles
 - `addSale(date, articleId, options)` - Add sale transaction (with new fields: costtype, caid2, spid, paymentmode)
-- `getSaleListDaterange(from, to)` - **NEW** Sales in date range
-- `getSaleListModified(days)` - **NEW** Recently modified sales
-- `getSaleListDate(date)` - **NEW** Sales for specific date
-- `getSaleListToday()` - **NEW** Today's sales
+- `getSaleListDaterange(from, to)` - Sales in date range
+- `getSaleListModified(days)` - Recently modified sales
+- `getSaleListDate(date)` - Sales for specific date
+- `getSaleListToday()` - Today's sales
 
-### Backup **NEW**
-- `getBackupZip()` - **NEW** Retrieve backup zip file
+### Backup
+- `getBackupZip()` - Retrieve backup zip file
 
-### Vouchers **NEW**
-- `getVoucherList()` - **NEW** List all vouchers
-- `addVoucher(voucherId, title, value, insertNewUser, lastname, options)` - **NEW** Add voucher
-- `changeVoucherStatus(voucherId, status)` - **NEW** Change voucher status
+### Vouchers
+- `getVoucherList()` - List all vouchers
+- `addVoucher(voucherId, title, value, insertNewUser, lastname, options)` - Add voucher
+- `changeVoucherStatus(voucherId, status)` - Change voucher status
 
 ## Example: Express.js Router with dotenv
 
@@ -430,11 +416,11 @@ Contributions are welcome! Please ensure:
   - Fixed `getCalendarList()` - was returning HTTP 401 Unauthorized
   - Fixed `getCalendarUser()` - accesstoken was not sent
   - Fixed `getBackupZip()` - accesstoken was not sent
-- ✅ **NEW**: Comprehensive test suite `test-api-complete.js` for all 44 documented endpoints
+- ✅ **NEW**: Comprehensive test suite `test-api-complete.js` for all documented endpoints
 - ✅ **NEW**: API coverage documentation `API-COVERAGE.md` - complete mapping of API endpoints to Node.js methods
-- 📚 **Enhanced**: README with ⚠️ warnings for non-documented endpoints
 - 🧪 **Test Coverage**: 25 of 44 endpoints (57%) now covered by automated tests
 - 📦 **npm script**: `npm run test:all` for complete API test suite
+- 🗑️ **REMOVED**: 12 non-documented methods for cleaner API surface (getAircraftList, getAircraft, getUserDetails, reservation CRUD, deleteAccountTransaction, workhour edit/delete/get, getFlightStatistics)
 
 ### Version 2.1 (August 2026)
 - 🐛 **Bug Fix**: Fixed URL typo in `getReservationList` (actice → active)
@@ -467,14 +453,9 @@ Contributions are welcome! Please ensure:
 - ✅ **Enhanced** Accounting methods with new fields:
   - `costtype` - Cost type / fee area
   - `spid` - Sphere ID
-- 📚 **IMPORTANT**: Updated to match API specification dated 17.08.2026
-  - 12 Methoden als "NICHT DOKUMENTIERT" markiert (behalten für zukünftige API-Versionen)
-  - Reservierungs-Schreiboperationen (add/edit/delete) nicht in API verfügbar
-  - Flugzeug-Endpunkte (list/get) nicht in API verfügbar
-  - Arbeitsstunden edit/delete/get nicht in API verfügbar
-  - Weitere Details siehe "⚠️ NICHT DOKUMENTIERT" Markierungen in API Overview
+- 📚 Updated to match API specification dated 17.08.2026
 - 🐛 **Critical Fix**: Rekursive Endlosschleife in `_validateAccessToken()` behoben
-- 📈 **Total: 56 implementierte Endpunkte** (44 dokumentiert, 12 für zukünftige API-Versionen vorbereitet)
+- 📈 **Total: 44 documented API endpoints** fully implemented
 
 ### Version 2.0 (2026)
 - ✅ Added 23 new API endpoints (48+ total methods)
