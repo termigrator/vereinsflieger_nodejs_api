@@ -67,7 +67,9 @@ class VereinsfliegerAPI {
      * @throws {Error} If no access token is available
      */
     _validateAccessToken() {
-        this._validateAccessToken();
+        if (!this.accesstoken) {
+            throw new Error('Not signed in. Please call signIn() first.');
+        }
     }
 
     /**
@@ -98,6 +100,8 @@ class VereinsfliegerAPI {
             uidCharge: options.uidCharge || 0,
             comment: options.comment || '',
             wId: options.wId || 0,
+            uidWinch: options.uidWinch || 0,
+            uidFi: options.uidFi || 0,
             towCallsign: options.towCallsign || '',
             towPilotName: options.towPilotName || '',
             towUidPilot: options.towUidPilot || 0,
@@ -105,6 +109,8 @@ class VereinsfliegerAPI {
             towHeight: options.towHeight || 0,
             offBlock: options.offBlock || '',
             onBlock: options.onBlock || '',
+            flightTime: options.flightTime || 0,
+            blockTime: options.blockTime || 0,
             motorStart: options.motorStart || 0.0,
             motorEnd: options.motorEnd || 0.0
         };
@@ -136,6 +142,8 @@ class VereinsfliegerAPI {
         vfp.params.append('uidcharge', params.uidCharge);
         vfp.params.append('comment', params.comment);
         vfp.params.append('wid', params.wId);
+        if (params.uidWinch) vfp.params.append('uidwinch', params.uidWinch);
+        if (params.uidFi) vfp.params.append('uidfi', params.uidFi);
         vfp.params.append('towcallsign', params.towCallsign);
         vfp.params.append('towpilotname', params.towPilotName);
         vfp.params.append('towuidpilot', params.towUidPilot);
@@ -143,6 +151,8 @@ class VereinsfliegerAPI {
         vfp.params.append('towheight', params.towHeight);
         vfp.params.append('offblock', params.offBlock);
         vfp.params.append('onblock', params.onBlock);
+        if (params.flightTime) vfp.params.append('flighttime', params.flightTime);
+        if (params.blockTime) vfp.params.append('blocktime', params.blockTime);
         vfp.params.append('motorstart', params.motorStart);
         vfp.params.append('motorend', params.motorEnd);
     }
@@ -243,6 +253,8 @@ class VereinsfliegerAPI {
      * @param {number} [options.uidCharge=0] - User ID to charge
      * @param {string} [options.comment=''] - Flight comment
      * @param {number} [options.wId=0] - Weather ID
+     * @param {number} [options.uidWinch=0] - Winch operator user ID
+     * @param {number} [options.uidFi=0] - Flight instructor user ID (for flight assignments)
      * @param {string} [options.towCallsign=''] - Tow plane callsign
      * @param {string} [options.towPilotName=''] - Tow pilot name
      * @param {number} [options.towUidPilot=0] - Tow pilot user ID
@@ -250,6 +262,8 @@ class VereinsfliegerAPI {
      * @param {number} [options.towHeight=0] - Tow height in meters
      * @param {string} [options.offBlock=''] - Off-block time
      * @param {string} [options.onBlock=''] - On-block time
+     * @param {number} [options.flightTime=0] - Flight time in minutes (optional override)
+     * @param {number} [options.blockTime=0] - Block time in minutes (optional override)
      * @param {number} [options.motorStart=0.0] - Motor start counter
      * @param {number} [options.motorEnd=0.0] - Motor end counter
      * @returns {Promise<Object>} The created flight data
@@ -305,6 +319,27 @@ class VereinsfliegerAPI {
         
         const vfp = new VereinsfliegerPromise('interface/rest/flight/delete/' + fligthId);
         vfp.params.append('accesstoken', this.accesstoken);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Connects two flights to form an F-Schlepp (aerotow)
+     * @param {string|number} flid - Flight ID of the glider (required)
+     * @param {string|number} flidtow - Flight ID of the tow plane (required)
+     * @returns {Promise<Object>} Connection confirmation
+     * @throws {Error} If not signed in or flight IDs are missing
+     */
+    async joinTowFlights(flid, flidtow) {
+        this._validateAccessToken();
+        if (!flid || !flidtow) {
+            throw new Error('Both flight IDs are required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/flight/jointowflights');
+        vfp.method = "PUT";
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('flid', flid);
+        vfp.params.append('flidtow', flidtow);
         return await vfp.fetch();
     }
 
@@ -463,6 +498,109 @@ class VereinsfliegerAPI {
     }
 
     /**
+     * Retrieves appointments for a specific date range
+     * @param {string} dateFrom - Start date in format YYYY-MM-DD (required)
+     * @param {string} dateTo - End date in format YYYY-MM-DD (required)
+     * @returns {Promise<Object>} List of appointments in the date range
+     * @throws {Error} If not signed in or date parameters are missing
+     */
+    async getCalendarList(dateFrom, dateTo) {
+        this._validateAccessToken();
+        if (!dateFrom || !dateTo) {
+            throw new Error('Date from and date to are required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/calendar/list');
+        vfp.method = "GET";
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('datefrom', dateFrom);
+        vfp.params.append('dateto', dateTo);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Adds a new appointment
+     * @param {string} title - Appointment title (required)
+     * @param {string} dateFrom - Start date/time (required)
+     * @param {string} dateTo - End date/time (required)
+     * @param {Object} [options={}] - Additional options
+     * @param {number} [options.exthomepage=0] - Display on external homepage (1=yes, 0=no)
+     * @param {string} [options.location=''] - Location
+     * @param {string} [options.comment=''] - Description
+     * @param {string} [options.appointmenturl=''] - URL
+     * @returns {Promise<Object>} The created appointment
+     * @throws {Error} If not signed in or required parameters are missing
+     */
+    async addCalendarAppointment(title, dateFrom, dateTo, { exthomepage = 0, location = '', comment = '', appointmenturl = '' } = {}) {
+        this._validateAccessToken();
+        if (!title || !dateFrom || !dateTo) {
+            throw new Error('Title, dateFrom and dateTo are required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/calendar/add');
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('title', title);
+        vfp.params.append('datefrom', dateFrom);
+        vfp.params.append('dateto', dateTo);
+        if (exthomepage) vfp.params.append('exthomepage', exthomepage);
+        if (location) vfp.params.append('location', location);
+        if (comment) vfp.params.append('comment', comment);
+        if (appointmenturl) vfp.params.append('appointmenturl', appointmenturl);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Edits an existing appointment
+     * @param {string|number} apoid - Appointment ID (required)
+     * @param {string} dateFrom - Start date/time (required)
+     * @param {string} dateTo - End date/time (required)
+     * @param {Object} [options={}] - Fields to update
+     * @param {string} [options.title=''] - Appointment title
+     * @param {number} [options.exthomepage] - Display on external homepage (1=yes, 0=no)
+     * @param {string} [options.location=''] - Location
+     * @param {string} [options.comment=''] - Description
+     * @param {string} [options.appointmenturl=''] - URL
+     * @returns {Promise<Object>} The updated appointment
+     * @throws {Error} If not signed in or required parameters are missing
+     */
+    async editCalendarAppointment(apoid, dateFrom, dateTo, { title = '', exthomepage, location = '', comment = '', appointmenturl = '' } = {}) {
+        this._validateAccessToken();
+        if (!apoid || !dateFrom || !dateTo) {
+            throw new Error('Appointment ID, dateFrom and dateTo are required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/calendar/edit/' + apoid);
+        vfp.method = "PUT";
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('datefrom', dateFrom);
+        vfp.params.append('dateto', dateTo);
+        if (title) vfp.params.append('title', title);
+        if (exthomepage !== undefined) vfp.params.append('exthomepage', exthomepage);
+        if (location) vfp.params.append('location', location);
+        if (comment) vfp.params.append('comment', comment);
+        if (appointmenturl) vfp.params.append('appointmenturl', appointmenturl);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Deletes an appointment
+     * @param {string|number} apoid - Appointment ID (required)
+     * @returns {Promise<Object>} Deletion confirmation
+     * @throws {Error} If not signed in or appointment ID is missing
+     */
+    async deleteCalendarAppointment(apoid) {
+        this._validateAccessToken();
+        if (!apoid) {
+            throw new Error('Appointment ID is required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/calendar/delete/' + apoid);
+        vfp.method = "DELETE";
+        vfp.params.append('accesstoken', this.accesstoken);
+        return await vfp.fetch();
+    }
+
+    /**
      * Retrieves the list of all persons/members
      * @param {string} [token=this.accesstoken] - Optional access token
      * @returns {Promise<Object>} List of all persons in the system
@@ -482,13 +620,11 @@ class VereinsfliegerAPI {
      * Retrieves the list of active reservations
      * @returns {Promise<Object>} List of active reservations
      * @throws {Error} If not signed in
-     * @note This function may not be fully tested
      */
     async getReservationList() {
         this._validateAccessToken();
         
-        //warning: test of this function did not pass!!
-        const vfp = new VereinsfliegerPromise('interface/rest/reservation/list/actice');
+        const vfp = new VereinsfliegerPromise('interface/rest/reservation/list/active');
         vfp.params.append('accesstoken', this.accesstoken);
         return await vfp.fetch();
     }
@@ -521,10 +657,13 @@ class VereinsfliegerAPI {
      * @param {string} accountReference - Account reference
      * @param {string} accountReferenceId - Account reference ID
      * @param {string} bookingText - Booking text/description
+     * @param {Object} [options={}] - Additional options
+     * @param {string} [options.costtype=''] - Cost type / fee area
+     * @param {number} [options.spid] - Sphere ID
      * @returns {Promise<Object>} The created transaction
      * @throws {Error} If not signed in, required parameters missing, or value <= 0
      */
-    async accountAddTransaction(bDate, value, salesTax, debitAccount, creditAccount, taxAccount, accountReference, accountReferenceId, bookingText) {
+    async accountAddTransaction(bDate, value, salesTax, debitAccount, creditAccount, taxAccount, accountReference, accountReferenceId, bookingText, { costtype = '', spid } = {}) {
         this._validateAccessToken();
         if (!bDate || !value || !debitAccount || !creditAccount) {
             throw new Error('Booking date, value, debit account and credit account are required');
@@ -544,6 +683,8 @@ class VereinsfliegerAPI {
         vfp.params.append('accountreference', accountReference);
         vfp.params.append('accountreferenceid', accountReferenceId);
         vfp.params.append('bookingtext', bookingText);
+        if (costtype) vfp.params.append('costtype', costtype);
+        if (spid !== undefined) vfp.params.append('spid', spid);
         return await vfp.fetch();
     }
 
@@ -709,10 +850,14 @@ class VereinsfliegerAPI {
      * @param {number} [options.counter=0.0] - Counter reading
      * @param {string} [options.comment=''] - Comment
      * @param {string} [options.ccId=''] - Cost center ID
+     * @param {string} [options.costtype=''] - Cost type / fee area
+     * @param {number} [options.caid2] - Credit account ID (must be expense or income account)
+     * @param {number} [options.spid] - Sphere ID
+     * @param {number} [options.paymentmode] - Payment mode (0=Not in cashbook, 1=Cash, 2=EC, 4-8=Custom)
      * @returns {Promise<Object>} The created sale transaction
      * @throws {Error} If not signed in or required parameters are missing
      */
-    async addSale(bookingDate, articleId, { ammount = 0.0, memberId = 0, callsign = '', salesTax = 0.0, totalPrice = 0.0, counter = 0.0, comment = '', ccId = '' } = {}) {
+    async addSale(bookingDate, articleId, { ammount = 0.0, memberId = 0, callsign = '', salesTax = 0.0, totalPrice = 0.0, counter = 0.0, comment = '', ccId = '', costtype = '', caid2, spid, paymentmode } = {}) {
         this._validateAccessToken();
         if (!bookingDate || !articleId) {
             throw new Error('Booking date and article ID are required');
@@ -730,6 +875,79 @@ class VereinsfliegerAPI {
         vfp.params.append('counter', counter);
         vfp.params.append('comment', comment);
         vfp.params.append('ccid', ccId);
+        if (costtype) vfp.params.append('costtype', costtype);
+        if (caid2 !== undefined) vfp.params.append('caid2', caid2);
+        if (spid !== undefined) vfp.params.append('spid', spid);
+        if (paymentmode !== undefined) vfp.params.append('paymentmode', paymentmode);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Retrieves sales for a specific date range
+     * @param {string} dateFrom - Start date in format YYYY-MM-DD (required)
+     * @param {string} dateTo - End date in format YYYY-MM-DD (required)
+     * @returns {Promise<Object>} List of sales in the date range
+     * @throws {Error} If not signed in or date parameters are missing
+     */
+    async getSaleListDaterange(dateFrom, dateTo) {
+        this._validateAccessToken();
+        if (!dateFrom || !dateTo) {
+            throw new Error('Date from and date to are required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/sale/list/daterange');
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('datefrom', dateFrom);
+        vfp.params.append('dateto', dateTo);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Retrieves sales that were modified in the last N days
+     * @param {number} days - Number of days to look back (1-28)
+     * @returns {Promise<Object>} List of modified sales
+     * @throws {Error} If not signed in or days parameter is missing
+     */
+    async getSaleListModified(days) {
+        this._validateAccessToken();
+        if (!days) {
+            throw new Error('Days parameter is required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/sale/list/modified');
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('days', days);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Retrieves all sales for a specific date
+     * @param {string} date - Date in format YYYY-MM-DD (required)
+     * @returns {Promise<Object>} List of sales for the specified date
+     * @throws {Error} If not signed in or date parameter is missing
+     */
+    async getSaleListDate(date) {
+        this._validateAccessToken();
+        if (!date) {
+            throw new Error('Date parameter is required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/sale/list/date');
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('date', date);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Retrieves all sales for today
+     * @returns {Promise<Object>} List of today's sales
+     * @throws {Error} If not signed in
+     */
+    async getSaleListToday() {
+        this._validateAccessToken();
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/sale/list/today');
+        vfp.params.append('accesstoken', this.accesstoken);
         return await vfp.fetch();
     }
 
@@ -885,10 +1103,12 @@ class VereinsfliegerAPI {
      * @param {number} [options.value=0] - Transaction value
      * @param {number} [options.salesTax=0] - Sales tax
      * @param {string} [options.bookingText=''] - Booking text
+     * @param {string} [options.costtype=''] - Cost type / fee area
+     * @param {number} [options.spid] - Sphere ID
      * @returns {Promise<Object>} The updated transaction
      * @throws {Error} If not signed in or transaction ID is missing
      */
-    async editAccountTransaction(transactionId, { bookingDate = '', value = 0, salesTax = 0, bookingText = '' } = {}) {
+    async editAccountTransaction(transactionId, { bookingDate = '', value = 0, salesTax = 0, bookingText = '', costtype = '', spid } = {}) {
         this._validateAccessToken();
         if (!transactionId) {
             throw new Error('Transaction ID is required');
@@ -901,6 +1121,8 @@ class VereinsfliegerAPI {
         if (value) vfp.params.append('value', value);
         if (salesTax) vfp.params.append('salestax', salesTax);
         if (bookingText) vfp.params.append('bookingtext', bookingText);
+        if (costtype) vfp.params.append('costtype', costtype);
+        if (spid !== undefined) vfp.params.append('spid', spid);
         return await vfp.fetch();
     }
 
@@ -1027,6 +1249,111 @@ class VereinsfliegerAPI {
         vfp.params.append('dateto', dateTo);
         return await vfp.fetch();
     }
+
+    // ========== Backup Endpoints ==========
+
+    /**
+     * Retrieves the backup zip file
+     * @returns {Promise<Object>} Backup zip file
+     * @throws {Error} If not signed in
+     */
+    async getBackupZip() {
+        this._validateAccessToken();
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/backup/getzip');
+        vfp.method = "GET";
+        vfp.params.append('accesstoken', this.accesstoken);
+        return await vfp.fetch();
+    }
+
+    // ========== Voucher Endpoints ==========
+
+    /**
+     * Retrieves the list of all vouchers
+     * @returns {Promise<Object>} List of all vouchers
+     * @throws {Error} If not signed in
+     */
+    async getVoucherList() {
+        this._validateAccessToken();
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/voucher/list');
+        vfp.params.append('accesstoken', this.accesstoken);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Adds a new voucher
+     * @param {string} voucherId - Voucher number (required)
+     * @param {string} title - Voucher title (required)
+     * @param {number} value - Voucher value (required)
+     * @param {number} insertNewUser - Add as person to member management (1=yes, 0=no) (required)
+     * @param {string} lastname - Last name (required if insertNewUser=1)
+     * @param {Object} [options={}] - Additional options
+     * @param {string} [options.comment=''] - Comment
+     * @param {string} [options.voucherdate=''] - Issue date in format YYYY-MM-DD
+     * @param {string} [options.gender=''] - Gender (m=male, w=female, d=diverse)
+     * @param {string} [options.firstname=''] - First name
+     * @param {string} [options.street=''] - Street
+     * @param {string} [options.zipcode=''] - Zip code
+     * @param {string} [options.town=''] - City
+     * @param {string} [options.email=''] - Email address
+     * @param {string} [options.phonenumber=''] - Phone number
+     * @param {string} [options.expiredate=''] - Expiry date in format YYYY-MM-DD
+     * @param {string} [options.passenger=''] - Guest/Passenger
+     * @param {number} [options.status] - Status (1=Created, 2=Activated, 3=Redeemed, 4=Expired, 5=Cancelled, 6=Partially redeemed)
+     * @returns {Promise<Object>} The created voucher
+     * @throws {Error} If not signed in or required parameters are missing
+     */
+    async addVoucher(voucherId, title, value, insertNewUser, lastname, { comment = '', voucherdate = '', gender = '', firstname = '', street = '', zipcode = '', town = '', email = '', phonenumber = '', expiredate = '', passenger = '', status } = {}) {
+        this._validateAccessToken();
+        if (!voucherId || !title || value === undefined || insertNewUser === undefined) {
+            throw new Error('Voucher ID, title, value and insertNewUser are required');
+        }
+        if (insertNewUser === 1 && !lastname) {
+            throw new Error('Last name is required when insertNewUser is 1');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/voucher/add');
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('voucherid', voucherId);
+        vfp.params.append('title', title);
+        vfp.params.append('value', value);
+        vfp.params.append('insertnewuser', insertNewUser);
+        if (lastname) vfp.params.append('lastname', lastname);
+        if (comment) vfp.params.append('comment', comment);
+        if (voucherdate) vfp.params.append('voucherdate', voucherdate);
+        if (gender) vfp.params.append('gender', gender);
+        if (firstname) vfp.params.append('firstname', firstname);
+        if (street) vfp.params.append('street', street);
+        if (zipcode) vfp.params.append('zipcode', zipcode);
+        if (town) vfp.params.append('town', town);
+        if (email) vfp.params.append('email', email);
+        if (phonenumber) vfp.params.append('phonenumber', phonenumber);
+        if (expiredate) vfp.params.append('expiredate', expiredate);
+        if (passenger) vfp.params.append('passenger', passenger);
+        if (status !== undefined) vfp.params.append('status', status);
+        return await vfp.fetch();
+    }
+
+    /**
+     * Changes the status of a voucher
+     * @param {string} voucherId - Voucher number (required)
+     * @param {number} status - New status (1=Created, 2=Activated, 3=Redeemed, 4=Expired, 5=Cancelled, 6=Partially redeemed) (required)
+     * @returns {Promise<Object>} The updated voucher
+     * @throws {Error} If not signed in or required parameters are missing
+     */
+    async changeVoucherStatus(voucherId, status) {
+        this._validateAccessToken();
+        if (!voucherId || status === undefined) {
+            throw new Error('Voucher ID and status are required');
+        }
+        
+        const vfp = new VereinsfliegerPromise('interface/rest/voucher/changestatus');
+        vfp.params.append('accesstoken', this.accesstoken);
+        vfp.params.append('voucherid', voucherId);
+        vfp.params.append('status', status);
+        return await vfp.fetch();
+    }
 }
 
 /**
@@ -1057,8 +1384,12 @@ class VereinsfliegerPromise {
         //method 'GET' is not allowed to have a body
         return new Promise((resolve, reject) => {
             const that = this;
-            if (this.method == "GET")
-                fetch(this.Host + this.resturi)
+            if (this.method == "GET") {
+                // For GET requests, append parameters as query string
+                const url = this.params.toString() 
+                    ? `${this.Host}${this.resturi}?${this.params.toString()}`
+                    : `${this.Host}${this.resturi}`;
+                fetch(url)
                     .then(r => r.json())
                     .then(function (data) {
                         if (data.httpstatuscode == 200) {
@@ -1071,6 +1402,7 @@ class VereinsfliegerPromise {
                             reject(data);
                     })
                     .catch(error => reject(error));
+            }
             else //all other methods need a body
                 fetch(this.Host + this.resturi, { method: this.method, body: this.params })
                     .then(r => r.json())

@@ -1,10 +1,12 @@
 {
   "name": "vereinsflieger_api",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "description": "Comprehensive Node.js wrapper for the Vereinsflieger REST API with full JSDoc documentation",
   "main": "vereinsflieger_nodejs_api.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "test:reservation": "node test-reservation.js",
+    "test:all": "node test-api-complete.js"
   },
   "keywords": [
     "vereinsflieger",
@@ -18,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/vereinsflieger_api.git"
+    "url": "https://github.com/termigrator/vereinsflieger_api.git"
   },
   "engines": {
     "node": ">=18.0.0"

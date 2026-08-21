@@ -6,3 +6,16 @@
 *.pdf
 *.pub
 .DS_Store
+
+# Debug und temporäre Test-Dateien
+check-*.js
+debug-*.js
+raw-*.js
+test-add-*.js
+test-promise.js
+extract-pdf.py
+extract-pdf.js
+pdf-output.txt
+compare-api.js
+analyze-coverage.js
+VereinsfliegerRestInterface.txt

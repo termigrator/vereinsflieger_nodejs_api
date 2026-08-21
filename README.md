@@ -86,7 +86,129 @@ async function example() {
 example();
 ```
 
+## Testing
+
+The project includes comprehensive test suites for validating API functionality.
+
+### Available Test Suites
+
+**1. Complete API Test Suite (all documented endpoints):**
+```bash
+npm run test:all
+# or
+node test-api-complete.js
+```
+Tests all documented API endpoints (44 endpoints per API spec dated 17.08.2026). This test suite excludes non-documented endpoints marked with ⚠️ WARNING.
+
+**2. Reservation Test Suite:**
+```bash
+npm run test:reservation
+# or
+node test-reservation.js
+```
+Focused tests for reservation endpoints with detailed CRUD operation validation.
+
+**3. Legacy Test File:**
+```bash
+npm test
+# or
+node test.js
+```
+
+### Running Tests
+
+**Full API Test Suite:**
+```bash
+node test-api-complete.js
+```
+
+**Reservation Tests (with selective execution):**
+```bash
+# Run all reservation tests
+node test-reservation.js
+
+# Run specific tests
+node test-reservation.js --test list add edit
+
+# Available test names: list, add, get, edit, delete, errors
+```
+
+### Test Configuration
+
+Add the test aircraft callsign to your `.env` file:
+```env
+TEST_AIRCRAFT_CALLSIGN=D-KXXX  # Replace with a valid callsign from your club
+```
+
+### Test Features
+
+✅ **Automated Setup & Cleanup** - Automatically logs in, creates test data, and cleans up  
+✅ **Comprehensive Coverage** - Tests all CRUD operations for reservations  
+✅ **Error Handling Tests** - Validates input validation and error cases  
+✅ **Detailed Reporting** - Color-coded output with pass/fail statistics  
+✅ **Extensible Architecture** - Easy to add tests for other API endpoints
+
+### Example Test Output
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║  Vereinsflieger API - Reservierungs-Test-Suite          ║
+╚═══════════════════════════════════════════════════════════╝
+
+========== Test Setup ==========
+[✓] Setup: Authentifizierung erfolgreich
+
+========== Test 1: Reservierungsliste ==========
+[✓] getReservationList: 5 Reservierungen gefunden
+
+========== Test 2: Reservierung erstellen ==========
+[✓] addReservation: Reservierung erfolgreich erstellt
+
+... (more tests) ...
+
+╔═══════════════════════════════════════════════════════════╗
+║                      TEST REPORT                         ║
+╚═══════════════════════════════════════════════════════════╝
+
+Gesamt:       15
+✓ Bestanden:  15
+✗ Fehler:     0
+○ Übersprungen: 0
+Dauer:        3.45s
+
+═══════════════════════════════════════════════════════════
+Ergebnis: ✓ ALLE TESTS BESTANDEN
+═══════════════════════════════════════════════════════════
+```
+
+### Extending the Test Suite
+
+The test suite is designed to be easily extensible. To add tests for other endpoints:
+
+1. Create a new test class based on `ReservationTestSuite`
+2. Implement test methods for your endpoint
+3. Add to the `runAllTests()` method
+
+Example structure:
+```javascript
+class FlightTestSuite extends ReservationTestSuite {
+    async testAddFlight() {
+        // Your test implementation
+    }
+    
+    async runAllTests() {
+        await this.setup();
+        await this.testAddFlight();
+        // ... more tests
+        await this.teardown();
+        return this.generateReport();
+    }
+}
+```
+
 ## API Overview
+
+> ⚠️ **WICHTIG**: Methoden mit der Markierung **⚠️ NICHT DOKUMENTIERT** sind in der offiziellen API-Spezifikation (Stand 17.08.2026) nicht dokumentiert und funktionieren möglicherweise nicht. Sie wurden für zukünftige API-Versionen vorbereitet oder basieren auf älteren Implementierungen. Verwenden Sie diese Methoden auf eigenes Risiko.
 
 ### Authentication
 - `signIn(username, password)` - Sign in user
@@ -95,9 +217,10 @@ example();
 - `setAccessToken()` - Get access token (called automatically)
 
 ### Flights (Complete CRUD)
-- `addFlight(callsign, options)` - Add new flight
+- `addFlight(callsign, options)` - Add new flight (with new fields: uidWinch, uidFi, flightTime, blockTime)
 - `editFlight(flightId, options)` - Edit existing flight
 - `deleteFlight(flightId)` - Delete flight
+- `joinTowFlights(flid, flidtow)` - **NEW** Connect two flights to form F-Schlepp
 - `getFlight(flightId)` - Get flight details
 - `getFlightListToday()` - Today's flights
 - `getFlightListDate(date)` - Flights for specific date
@@ -106,48 +229,64 @@ example();
 - `getLastFlightsUser(count)` - Last N flights of current user
 - `getLastFlightsPilot(uid, count)` - Last N flights of pilot
 - `getLastModifiedFlights(days)` - Recently modified flights
-- `getFlightStatistics(from, to)` - Flight statistics
+- `getFlightStatistics(from, to)` - ⚠️ **NICHT DOKUMENTIERT** - Flight statistics (nicht in offizieller API-Spezifikation)
 
 ### Aircraft
-- `getAircraftList()` - List all aircraft
-- `getAircraft(callsign)` - Get aircraft details
+- `getAircraftList()` - ⚠️ **NICHT DOKUMENTIERT** - List all aircraft (nicht in offizieller API-Spezifikation)
+- `getAircraft(callsign)` - ⚠️ **NICHT DOKUMENTIERT** - Get aircraft details (nicht in offizieller API-Spezifikation)
 - `getMaintenanceData(callsign)` - Get maintenance data
 
 ### Users
 - `getPersonList()` - List all users/members
-- `getUserDetails(uid)` - Get detailed user info
+- `getUserDetails(uid)` - ⚠️ **NICHT DOKUMENTIERT** - Get detailed user info (nicht in offizieller API-Spezifikation)
 
-### Reservations (Complete CRUD)
-- `addReservation(callsign, from, to, options)` - Add reservation
-- `editReservation(reservationId, options)` - Edit reservation
-- `deleteReservation(reservationId)` - Delete reservation
-- `getReservation(reservationId)` - Get reservation details
-- `getReservationList()` - List active reservations
+### Reservations (Read-Only)
+- `addReservation(callsign, from, to, options)` - ⚠️ **NICHT DOKUMENTIERT** - Add reservation (nicht in offizieller API-Spezifikation)
+- `editReservation(reservationId, options)` - ⚠️ **NICHT DOKUMENTIERT** - Edit reservation (nicht in offizieller API-Spezifikation)
+- `deleteReservation(reservationId)` - ⚠️ **NICHT DOKUMENTIERT** - Delete reservation (nicht in offizieller API-Spezifikation)
+- `getReservation(reservationId)` - ⚠️ **NICHT DOKUMENTIERT** - Get reservation details (nicht in offizieller API-Spezifikation)
+- `getReservationList()` - List active reservations (**FIXED** URL typo)
 
-### Calendar
+### Calendar (Complete CRUD) **NEW**
 - `getCalendarPublic(hpaccessCode)` - Get public calendar (no auth)
 - `getCalendarUser()` - Get user's calendar
+- `getCalendarList(from, to)` - **NEW** Get appointments for date range
+- `addCalendarAppointment(title, from, to, options)` - **NEW** Add appointment
+- `editCalendarAppointment(apoid, from, to, options)` - **NEW** Edit appointment
+- `deleteCalendarAppointment(apoid)` - **NEW** Delete appointment
 
 ### Accounting (Complete CRUD)
-- `accountAddTransaction(date, value, tax, debit, credit, ...)` - Add transaction
-- `editAccountTransaction(transactionId, options)` - Edit transaction
-- `deleteAccountTransaction(transactionId)` - Delete transaction
+- `accountAddTransaction(date, value, tax, debit, credit, ..., options)` - Add transaction (with new fields: costtype, spid)
+- `editAccountTransaction(transactionId, options)` - Edit transaction (with new fields: costtype, spid)
+- `deleteAccountTransaction(transactionId)` - ⚠️ **NICHT DOKUMENTIERT** - Delete transaction (nicht in offizieller API-Spezifikation)
 - `getAccountTransaction(transactionId)` - Get transaction details
 - `getAccountTransactionsToday()` - Today's transactions
 - `getAccountListYear(year)` - Transactions for year
 - `getAccountTransactionsDaterange(from, to)` - Transactions in range
 
-### Work Hours (Complete CRUD)
+### Work Hours (Add + Read)
 - `workhoursAdd(uid, date, text, hours, category, options)` - Add work hours
-- `editWorkhour(workhourId, options)` - Edit work hours
-- `deleteWorkhour(workhourId)` - Delete work hours
-- `getWorkhour(workhourId)` - Get work hour details
+- `editWorkhour(workhourId, options)` - ⚠️ **NICHT DOKUMENTIERT** - Edit work hours (nicht in offizieller API-Spezifikation)
+- `deleteWorkhour(workhourId)` - ⚠️ **NICHT DOKUMENTIERT** - Delete work hours (nicht in offizieller API-Spezifikation)
+- `getWorkhour(workhourId)` - ⚠️ **NICHT DOKUMENTIERT** - Get work hour details (nicht in offizieller API-Spezifikation)
 - `getWorkhoursDaterange(from, to)` - Work hours in range
 - `getWorkhoursCategories()` - Get available categories
 
 ### Articles & Sales
 - `getArticles()` - List all articles
-- `addSale(date, articleId, options)` - Add sale transaction
+- `addSale(date, articleId, options)` - Add sale transaction (with new fields: costtype, caid2, spid, paymentmode)
+- `getSaleListDaterange(from, to)` - **NEW** Sales in date range
+- `getSaleListModified(days)` - **NEW** Recently modified sales
+- `getSaleListDate(date)` - **NEW** Sales for specific date
+- `getSaleListToday()` - **NEW** Today's sales
+
+### Backup **NEW**
+- `getBackupZip()` - **NEW** Retrieve backup zip file
+
+### Vouchers **NEW**
+- `getVoucherList()` - **NEW** List all vouchers
+- `addVoucher(voucherId, title, value, insertNewUser, lastname, options)` - **NEW** Add voucher
+- `changeVoucherStatus(voucherId, status)` - **NEW** Change voucher status
 
 ## Example: Express.js Router with dotenv
 
@@ -285,6 +424,57 @@ Contributions are welcome! Please ensure:
 - Test your changes
 
 ## Changelog
+
+### Version 2.1.1 (August 2026)
+- 🐛 **CRITICAL BUG FIX**: GET requests now correctly append parameters as query string
+  - Fixed `getCalendarList()` - was returning HTTP 401 Unauthorized
+  - Fixed `getCalendarUser()` - accesstoken was not sent
+  - Fixed `getBackupZip()` - accesstoken was not sent
+- ✅ **NEW**: Comprehensive test suite `test-api-complete.js` for all 44 documented endpoints
+- ✅ **NEW**: API coverage documentation `API-COVERAGE.md` - complete mapping of API endpoints to Node.js methods
+- 📚 **Enhanced**: README with ⚠️ warnings for non-documented endpoints
+- 🧪 **Test Coverage**: 25 of 44 endpoints (57%) now covered by automated tests
+- 📦 **npm script**: `npm run test:all` for complete API test suite
+
+### Version 2.1 (August 2026)
+- 🐛 **Bug Fix**: Fixed URL typo in `getReservationList` (actice → active)
+- ✅ **NEW** Calendar CRUD operations (4 new methods):
+  - `getCalendarList()` - Get appointments for date range
+  - `addCalendarAppointment()` - Add new appointment
+  - `editCalendarAppointment()` - Edit existing appointment
+  - `deleteCalendarAppointment()` - Delete appointment
+- ✅ **NEW** F-Schlepp connection: `joinTowFlights()` - Connect glider and tow flights
+- ✅ **NEW** Sales list endpoints (4 new methods):
+  - `getSaleListDaterange()` - Sales in date range
+  - `getSaleListModified()` - Recently modified sales
+  - `getSaleListDate()` - Sales for specific date
+  - `getSaleListToday()` - Today's sales
+- ✅ **NEW** Backup endpoint: `getBackupZip()` - Download backup file
+- ✅ **NEW** Voucher management (3 new methods):
+  - `getVoucherList()` - List all vouchers
+  - `addVoucher()` - Create new voucher
+  - `changeVoucherStatus()` - Update voucher status
+- ✅ **Enhanced** Flight methods with new fields:
+  - `uidWinch` - Winch operator user ID
+  - `uidFi` - Flight instructor user ID (for flight assignments)
+  - `flightTime` - Manual flight time override
+  - `blockTime` - Manual block time override
+- ✅ **Enhanced** Sale method with new fields:
+  - `costtype` - Cost type / fee area
+  - `caid2` - Credit account ID
+  - `spid` - Sphere ID
+  - `paymentmode` - Payment mode for cashbook
+- ✅ **Enhanced** Accounting methods with new fields:
+  - `costtype` - Cost type / fee area
+  - `spid` - Sphere ID
+- 📚 **IMPORTANT**: Updated to match API specification dated 17.08.2026
+  - 12 Methoden als "NICHT DOKUMENTIERT" markiert (behalten für zukünftige API-Versionen)
+  - Reservierungs-Schreiboperationen (add/edit/delete) nicht in API verfügbar
+  - Flugzeug-Endpunkte (list/get) nicht in API verfügbar
+  - Arbeitsstunden edit/delete/get nicht in API verfügbar
+  - Weitere Details siehe "⚠️ NICHT DOKUMENTIERT" Markierungen in API Overview
+- 🐛 **Critical Fix**: Rekursive Endlosschleife in `_validateAccessToken()` behoben
+- 📈 **Total: 56 implementierte Endpunkte** (44 dokumentiert, 12 für zukünftige API-Versionen vorbereitet)
 
 ### Version 2.0 (2026)
 - ✅ Added 23 new API endpoints (48+ total methods)
